@@ -6,7 +6,7 @@ NEWT_SRC_DIR := /go/src/mynewt.apache.org/newt
 NEWTMGR_URL := https://github.com/apache/mynewt-newtmgr.git
 NEWTMGR_SRC_DIR := /go/src/mynewt.apache.org/newtmgr
 JLINK_RELEASE := 648
-JLINK_BIN := JLink_Linux_V$(JLINK_RELEASE)_x86_64.deb
+JLINK_BIN := JLink_Linux_V$(JLINK_RELEASE)_arm64.deb
 JLINK_URL := https://www.segger.com/downloads/jlink
 JLINK_CHKS := $(JLINK_BIN).sha256
 
@@ -32,5 +32,5 @@ newt-binary: clean
 
 newt: newt-binary
 	$(eval NEWT_VERSION := $(shell docker run --rm -v $(PWD)/_scratch:/_scratch -w /_scratch golang:$(GO_VERSION) ./newt version | cut -d" " -f3))
-	docker build -t newt:$(NEWT_VERSION)-$(TOOLCHAIN_VERSION) -f Dockerfile .
-	docker tag newt:$(NEWT_VERSION)-$(TOOLCHAIN_VERSION) newt:latest
+	docker build -t quay.io/josua-sr/newt:$(NEWT_VERSION)-$(TOOLCHAIN_VERSION) -f Dockerfile .
+	docker tag quay.io/josua-sr/newt:$(NEWT_VERSION)-$(TOOLCHAIN_VERSION) quay.io/josua-sr/newt:latest
