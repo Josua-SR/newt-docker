@@ -1,9 +1,23 @@
-FROM ubuntu:bionic
+FROM ubuntu:bionic AS build-openocd
+ENV DEBIAN_FRONTEND noninteractive
+RUN set -e; \
+    apt-get update; \
+    apt-get -y install git autoconf automake libtool m4 texinfo make gcc pkg-config; \
+    :
+
+RUN git clone https://github.com/SolidRun/openocd.git
+RUN set -e; \
+    cd openocd; \
+    ./bootstrap; \
+    ./configure --prefix=/usr --sysconfdir=/etc --enable-imx_gpio --enable-sysfsgpio --disable-stlink --disable-ti-icdi --disable-ulink --disable-usb-blaster-2 --disable-vsllink --disable-xds110 --disable-osbdm --disable-opendous --disable-aice --disable-usbprog --disable-rlink --disable-armjtagew --disable-cmsis-dap --disable-kitprog --disable-usb-blaster --disable-presto --disable-openjtag --disable-jlink; \
+    make -j1; \
+    make DESTDIR=/dist/openocd install; \
+    :
+
+FROM ubuntu:bionic AS target
 MAINTAINER runtime.io <contact@runtime.io>
 
 ENV DEBIAN_FRONTEND noninteractive
-
-ARG JLINK_RELEASE
 
 # gcc-arm-embedded is pulled from ppa:team-gcc-arm-embedded/ppa
 RUN apt-get update && \
@@ -18,8 +32,10 @@ RUN apt-get update && \
                     gcc \
                     gcc-arm-embedded \
                     gdb \
-                    openocd \
+                    make \
                     netcat && \
     apt-get autoremove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+COPY --from=build-openocd /dist/openocd/ /
